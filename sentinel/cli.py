@@ -2,7 +2,6 @@ import asyncio
 import sys
 from typing import Optional
 import typer
-from rich.prompt import Prompt
 
 from sentinel.ui.console import (
     console,
@@ -67,6 +66,7 @@ def scan(
         raise typer.Exit(code=1)
 
     async def _execute_scan():
+        adapter = None
         if demo:
             target_label = "Built-in Vulnerable FastMCP Demo Target"
             transport_type = "In-Memory / FastMCP"
@@ -85,27 +85,31 @@ def scan(
                     raise typer.Exit(code=1)
             caller = adapter.call_tool_stdio
 
-        print_target_info(target_label, transport_type, len(tools))
-        print_tools_table(tools)
+        try:
+            print_target_info(target_label, transport_type, len(tools))
+            print_tools_table(tools)
 
-        orchestrator = ScanOrchestrator(target_label=target_label, dynamic_caller=caller)
+            orchestrator = ScanOrchestrator(target_label=target_label, dynamic_caller=caller)
 
-        with console.status("[bold magenta]🚀 Executing static schema linter and dynamic fuzzing probes...[/]", spinner="bouncingBar"):
-            summary = await orchestrator.scan_tools(tools, enable_dynamic=dynamic)
+            with console.status("[bold magenta]🚀 Executing static schema linter and dynamic fuzzing probes...[/]", spinner="bouncingBar"):
+                summary = await orchestrator.scan_tools(tools, enable_dynamic=dynamic)
 
-        print_detailed_findings(summary.findings)
-        print_findings_summary(summary)
+            print_detailed_findings(summary.findings)
+            print_findings_summary(summary)
 
-        if output:
-            fmt_lower = format.lower()
-            if fmt_lower == "json":
-                ReportExporter.to_json(summary, output)
-            elif fmt_lower == "sarif":
-                ReportExporter.to_sarif(summary, output)
-            else:
-                ReportExporter.to_markdown(summary, output)
+            if output:
+                fmt_lower = format.lower()
+                if fmt_lower == "json":
+                    ReportExporter.to_json(summary, output)
+                elif fmt_lower == "sarif":
+                    ReportExporter.to_sarif(summary, output)
+                else:
+                    ReportExporter.to_markdown(summary, output)
 
-            console.print(f"\n[bold green]💾 Successfully exported {fmt_lower.upper()} report to:[/] [bold cyan]{output}[/]\n")
+                console.print(f"\n[bold green]💾 Successfully exported {fmt_lower.upper()} report to:[/] [bold cyan]{output}[/]\n")
+        finally:
+            if adapter:
+                await adapter.close()
 
     asyncio.run(_execute_scan())
 
