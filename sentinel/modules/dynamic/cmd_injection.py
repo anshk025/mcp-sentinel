@@ -1,8 +1,10 @@
+import re
 import uuid
 from typing import Any, Callable, Dict, List
 from sentinel.models import Finding, Severity, ToolDefinition, VulnCategory
 
-CMD_PARAM_HINTS = {"cmd", "command", "query", "script", "code", "input", "exec", "args"}
+# Targeted command injection parameters
+CMD_PARAM_HINTS = {"cmd", "command", "script", "code", "exec", "shell", "bash", "eval", "process"}
 
 
 class CommandInjectionFuzzer:
@@ -37,7 +39,12 @@ class CommandInjectionFuzzer:
                     res = await caller_fn(tool.name, args)
                     res_str = str(res)
 
+                    # Verify canary is executed and not just reflected in an HTTP/API error message
                     if canary_token in res_str:
+                        # Check for false-positive verbatim URL or error reflection
+                        if payload in res_str and ("https://" in res_str or "http://" in res_str or "failed to" in res_str.lower()):
+                            continue
+
                         findings.append(
                             Finding(
                                 id=f"DYN-CMDI-{uuid.uuid4().hex[:6]}",
@@ -50,7 +57,7 @@ class CommandInjectionFuzzer:
                                     f"Tool '{tool.name}' passes input parameter '{param}' directly to a shell or command interpreter "
                                     f"without proper sanitization, allowing arbitrary command execution."
                                 ),
-                                proof_of_concept=f"Calling {tool.name}({param}='{payload}') reflected injected canary token '{canary_token}'.",
+                                proof_of_concept=f"Calling {tool.name}({param}='{payload}') reflected executed canary token '{canary_token}'.",
                                 payload=payload,
                                 response_snippet=res_str[:300],
                                 remediation=(
