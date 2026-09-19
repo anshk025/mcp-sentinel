@@ -140,7 +140,7 @@ Contributions are warmly welcomed! Feel free to open issues or PRs to add new vu
 
 ```bash
 # Clone and install locally
-git clone https://github.com/mcp-sentinel/mcp-sentinel.git
+git clone https://github.com/anshk025/mcp-sentinel.git
 cd mcp-sentinel
 uv sync
 uv run pytest

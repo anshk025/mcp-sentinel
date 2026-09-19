@@ -98,7 +98,7 @@ class ReportExporter:
                     "driver": {
                         "name": "MCP-Sentinel",
                         "version": "0.1.0",
-                        "informationUri": "https://github.com/mcp-sentinel/mcp-sentinel",
+                        "informationUri": "https://github.com/anshk025/mcp-sentinel",
                         "rules": rules,
                     }
                 },
