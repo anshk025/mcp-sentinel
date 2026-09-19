@@ -17,7 +17,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 console = Console(highlight=False)
 
-BANNER = """[bold cyan]
+BANNER = r"""[bold cyan]
   __  __  ____ ____         ____             _   _            _ 
  |  \/  |/ ___|  _ \       / ___|  ___ _ __ | |_(_)_ __   ___| |
  | |\/| | |   | |_) |_____ \___ \ / _ \ '_ \| __| | '_ \ / _ \ |
