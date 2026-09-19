@@ -5,23 +5,33 @@
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Specification](https://img.shields.io/badge/MCP-2.0-8A2BE2)](https://modelcontextprotocol.io)
+[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-skills.sh-FF5722)](https://github.com/anshk025/mcp-sentinel/blob/main/SKILL.md)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 **Automated Dynamic Fuzzing, Schema Auditing, and Vulnerability Assessment for AI Agent Toolkits.**
 
-[Quickstart](#-quickstart) • [Vulnerability Classes](#-attack-taxonomy) • [CLI Usage](#-cli-usage) • [CI/CD Integration](#-github-actions--cicd)
+[Quickstart](#-quickstart) • [Agent Skill (npx)](#-install-as-an-ai-agent-skill) • [Vulnerability Classes](#-attack-taxonomy) • [CLI Usage](#-cli-usage) • [CI/CD Integration](#-github-actions--cicd)
 
 </div>
 
 ---
+
+```text
+  __  __  ____ ____         ____             _   _            _ 
+ |  \/  |/ ___|  _ \       / ___|  ___ _ __ | |_(_)_ __   ___| |
+ | |\/| | |   | |_) |_____ \___ \ / _ \ '_ \| __| | '_ \ / _ \ |
+ | |  | | |___|  __/|_____| ___) |  __/ | | | |_| | | | |  __/ |
+ |_|  |_|\____|_|          |____/ \___|_| |_|\__|_|_| |_|\___|_|
+            >> MCP Dynamic Security Scanner & Linter <<
+```
 
 ## 🎯 Why MCP-Sentinel?
 
 The **Model Context Protocol (MCP)** enables AI agents to interact with host filesystems, databases, APIs, and execution environments. However, exposing tools to LLMs creates critical trust-boundary vulnerabilities:
 
 - **Path Traversal & Arbitrary File Reads** through unrestricted file parameters.
-- **Uncontrolled Command Injection (RCE)** in terminal/shell tools.
+- **Uncontrolled Command Injection (RCE)** in terminal and execution tools.
 - **Server-Side Request Forgery (SSRF)** to cloud metadata (`169.254.169.254`) and internal microservices.
 - **Hardcoded Secret Leaks** (API keys, DB URIs, JWTs) embedded in tool schemas.
 - **Invisible Unicode Tag & ASCII Smuggling** (`U+E0000`-`U+E007F`) used to hide prompt injections from human operators.
@@ -36,7 +46,18 @@ The **Model Context Protocol (MCP)** enables AI agents to interact with host fil
 - ⚡ **Static Schema & Secret Linter:** Scans tool descriptions, parameter bounds, and metadata for 40+ secret patterns and overprivileged permissions.
 - 🧪 **Active Dynamic Fuzzer:** Probes live MCP servers across stdio/SSE for Path Traversal (LFI), Command Injection (RCE), SSRF, and Unicode tag smuggling.
 - 📊 **Multi-Format Reporting:** Instant exports to **Markdown**, **JSON**, and **SARIF v2.1.0** (for native GitHub Security CodeQL integration).
+- 🤖 **Agent Skill Ready:** Native support for the open Agent Skills ecosystem (`npx skills add anshk025/mcp-sentinel`).
 - 🎮 **Instant Demo Mode:** Includes a built-in mock server to test and demonstrate capabilities with zero configuration.
+
+---
+
+## 🤖 Install as an AI Agent Skill
+
+Install `mcp-sentinel` directly into **Claude Code**, **Cursor**, **Windsurf**, or **Antigravity** so your AI agent automatically audits MCP servers as you build them:
+
+```bash
+npx skills add anshk025/mcp-sentinel
+```
 
 ---
 
@@ -45,18 +66,18 @@ The **Model Context Protocol (MCP)** enables AI agents to interact with host fil
 ### Installation
 
 ```bash
-# Using uv (recommended)
-uv tool install mcp-sentinel
+# Install directly from GitHub using uv (recommended)
+uv tool install git+https://github.com/anshk025/mcp-sentinel.git
 
 # Or using pip
-pip install mcp-sentinel
+pip install git+https://github.com/anshk025/mcp-sentinel.git
 ```
 
 ### 1-Minute Interactive Demo
 Run a complete dynamic vulnerability scan against the built-in vulnerable test server:
 
 ```bash
-mcp-sentinel demo
+mcp-sentinel demo --output demo-report.md
 ```
 
 ---
@@ -87,6 +108,16 @@ Export scan findings to SARIF for direct visualization in GitHub Pull Requests:
 ```bash
 mcp-sentinel scan --stdio "python server.py" --output mcp-security.sarif --format sarif
 ```
+
+### 4. CLI Flags Reference
+
+| Flag | Short | Description | Default |
+|---|---|---|---|
+| `--stdio` | `-c` | Command to launch target MCP server | `None` |
+| `--demo` | `-d` | Run scan against built-in vulnerable test server | `False` |
+| `--dynamic / --static-only` | | Enable active parameter fuzzing vs static schema audit | `True` |
+| `--output` | `-o` | Output file path for audit report | `None` |
+| `--format` | `-f` | Report format (`markdown`, `json`, `sarif`) | `markdown` |
 
 ---
 
@@ -123,7 +154,7 @@ jobs:
 
       - name: Run MCP-Sentinel Security Scan
         run: |
-          uvx mcp-sentinel scan --stdio "python server.py" --output results.sarif --format sarif
+          uvx --from git+https://github.com/anshk025/mcp-sentinel.git mcp-sentinel scan --stdio "python server.py" --output results.sarif --format sarif
 
       - name: Upload SARIF report to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
@@ -134,9 +165,7 @@ jobs:
 
 ---
 
-## 🤝 Contributing
-
-Contributions are warmly welcomed! Feel free to open issues or PRs to add new vulnerability detectors, fuzzing heuristics, or transport protocols.
+## 🧪 Running Tests
 
 ```bash
 # Clone and install locally
